@@ -23,10 +23,28 @@ class ScenarioResult:
     agent_log: list[str]
 
 
-def _run(scenario) -> tuple[list, list[str]]:
+def _run(scenario, max_attempts: int = 3) -> tuple[list, list[str]]:
+    """
+    Runs the scenario, retrying the whole graph invocation on transient
+    provider errors (observed: OpenRouter free-tier models occasionally
+    return message.content=None, causing a TypeError deep in
+    vendored/guardian/llm_client.py). This wrapper lives OUTSIDE the
+    vendored code deliberately - it does not alter Planner/Guardrail
+    logic, only retries the same unmodified pipeline on infra flakiness.
+    Logged to FINDINGS.md as a known reliability issue with the free model.
+    """
     graph = build_graph()
-    result = graph.invoke(scenario.initial_state())
-    return result["final_allocations"], result["agent_log"]
+    last_exception: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            result = graph.invoke(scenario.initial_state())
+            return result["final_allocations"], result["agent_log"]
+        except Exception as e:
+            last_exception = e
+            print(f"[harness] Attempt {attempt}/{max_attempts} failed with "
+                  f"{type(e).__name__}: {e}. Retrying..." if attempt < max_attempts
+                  else f"[harness] Attempt {attempt}/{max_attempts} failed. Giving up.")
+    raise last_exception
 
 
 def run_user_scenario(scenario: UserScenario) -> ScenarioResult:
