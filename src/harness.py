@@ -23,7 +23,7 @@ class ScenarioResult:
     agent_log: list[str]
 
 
-def _run(scenario, max_attempts: int = 3) -> tuple[list, list[str]]:
+def _run(scenario, max_attempts: int = 5) -> tuple[list, list[str]]:
     """
     Runs the scenario, retrying the whole graph invocation on transient
     provider errors (observed: OpenRouter free-tier models occasionally
