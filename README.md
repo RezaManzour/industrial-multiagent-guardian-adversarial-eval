@@ -31,7 +31,7 @@ rationale.
 
 Across 6 attack scenarios spanning 3 categories (prompt injection,
 goal-hijacking, structured-output edge cases), **security held in
-15/18 runs (83%)**. One vulnerability was found and confirmed 100%
+25/30 runs (83%)**. One vulnerability was found and confirmed 100%
 reproducible: a missing upper bound in one Guardrail rule lets an order
 claim an implausibly long machine reservation, starving a legitimate
 competing order — a genuine gap in rule coverage, not a rule being
